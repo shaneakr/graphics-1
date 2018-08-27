@@ -13,6 +13,8 @@ import javax.swing.*;
 public class GraphicsStarter extends JPanel {
 	private static int IMAGE_WIDTH = 75;
 	private static int IMAGE_HEIGHT = 75;
+	
+	private static int keyframe = 0;
     /**
      * This main() routine makes it possible to run the class GraphicsStarter
      * as an application.  It simply creates a window that contains a panel
@@ -31,6 +33,16 @@ public class GraphicsStarter extends JPanel {
                 (screen.width - window.getWidth())/2, 
                 (screen.height - window.getHeight())/2 );
         window.setVisible(true); // Open the window, making it visible on the screen.
+        
+        for (; keyframe<5; keyframe++){
+        	window.repaint();
+	        try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}   
+        }
     }
     
     private float pixelSize;  // This is the measure of a pixel in the coordinate system
@@ -76,27 +88,10 @@ public class GraphicsStarter extends JPanel {
          * variable pixelSize, which I need for stroke widths in the transformed
          * coordinate system.
          */
-        
-        applyapplyWindowToViewportTransformation(g2, -1000, 1000, -1000, 1000, true);
-        
+                
         /* Finish by drawing a few shapes as an example.  You can erase the rest of 
          * this subroutine and substitute your own drawing.
          */
-        
-//        g2.setPaint(Color.YELLOW);
-//        g2.fill( new Ellipse2D.Double(-6,-1,12,2) );
-//        g2.setPaint(Color.CYAN);
-//        g2.fill(new Rectangle2D.Double(-5, 1, 12, 2));
-//        g2.setPaint(Color.GREEN);
-   
-       // g2.fill()
-//        g2.setPaint(Color.BLUE);
-//        g2.setStroke( new BasicStroke(5*pixelSize) );
-//        g2.draw( new Line2D.Double( -5, -5, 5, 5) );
-//        g2.draw( new Line2D.Double( -5, 5, 5, -5) );
-//        
-//        
-       
         
         //// THE IMAGE WITH THE SQUARE
         
@@ -106,48 +101,50 @@ public class GraphicsStarter extends JPanel {
         
         // transform the first image by rendering into a second image
         BufferedImage squareTransformer = new BufferedImage(IMAGE_WIDTH*2, IMAGE_HEIGHT*2, BufferedImage.TYPE_INT_RGB);
+    
         Graphics gSquare = squareTransformer.getGraphics();
         Graphics2D g2Square = (Graphics2D)gSquare.create();
         g2Square.setPaint(Color.WHITE);
         g2Square.fillRect(0,0,IMAGE_WIDTH*2,IMAGE_HEIGHT*2);
 
-        // the transforms
-//        g2Square.rotate(Math.PI/4.0, IMAGE_WIDTH, IMAGE_HEIGHT);
-
+        applyapplyWindowToViewportTransformation(g2Square, -100, 100, -100, 100, IMAGE_WIDTH*2, IMAGE_HEIGHT*2,true);
+        
+        animate(g2Square);
+        
         // render first image into second image
-        g2Square.drawImage(imageOfSquare, IMAGE_WIDTH/2, IMAGE_HEIGHT/2, null);
+        g2Square.drawImage(imageOfSquare, -IMAGE_WIDTH/2, -IMAGE_HEIGHT/2, null);
         
         // render transformed image onto screen
         g2.drawImage( squareTransformer, 110, 100, null );
 
-        
-        
+    
+    
         ///make a rectangle
         Color [][]rectangle = createImageRectangle();
         BufferedImage imageOfRectangle = makeBufferedImage(rectangle, IMAGE_WIDTH, IMAGE_HEIGHT);
-        g2.drawImage( imageOfRectangle, 310, 100, null );
         
         //transform the first rectangle by rendering into a second rectangle
-        BufferedImage rectTransformer = new BufferedImage(IMAGE_WIDTH*2+15, IMAGE_HEIGHT*2, BufferedImage.TYPE_INT_RGB);
+        BufferedImage rectTransformer = new BufferedImage(IMAGE_WIDTH*2, IMAGE_HEIGHT*2, BufferedImage.TYPE_INT_RGB);
         Graphics gRect = rectTransformer.getGraphics();
         Graphics2D g2Rect = (Graphics2D)gRect.create();
         g2Rect.setPaint(Color.WHITE);
-        g2Rect.fillRect(0,0,IMAGE_WIDTH*2+15,IMAGE_HEIGHT*2);
+        g2Rect.fillRect(0,0,IMAGE_WIDTH*2,IMAGE_HEIGHT*2);
         
-     // the transforms
-//      g2Rect.rotate(Math.PI/4.0, IMAGE_WIDTH, IMAGE_HEIGHT);
-        
-     // render first image into second image
-        g2Rect.drawImage(imageOfRectangle, IMAGE_WIDTH/2+15, IMAGE_HEIGHT/2, null);
+        applyapplyWindowToViewportTransformation(g2Rect, -100, 100, -100, 100, IMAGE_WIDTH*2, IMAGE_HEIGHT*2,true);
+        animate(g2Rect);
+
+        // render first image into second image
+        g2Rect.drawImage(imageOfRectangle, -IMAGE_WIDTH/2, -IMAGE_HEIGHT/2, null);
         
         // render transformed image onto screen
         g2.drawImage( rectTransformer, 310, 100, null );
         
+        
+        
+        
         // make lines
         Color [][]lines = createImageLines();
-        BufferedImage imageOfLines = makeBufferedImage(lines, IMAGE_WIDTH, IMAGE_HEIGHT);
-        g2.drawImage( imageOfLines, 510, 100, null );
-        
+        BufferedImage imageOfLines = makeBufferedImage(lines, IMAGE_WIDTH, IMAGE_HEIGHT);        
         
         //transform the first line by rendering to rectangle
         BufferedImage lineTransformer = new BufferedImage(IMAGE_WIDTH*2, IMAGE_HEIGHT*2, BufferedImage.TYPE_INT_RGB);
@@ -156,12 +153,13 @@ public class GraphicsStarter extends JPanel {
         g2Line.setPaint(Color.WHITE);
         g2Line.fillRect(0,0,IMAGE_WIDTH*2,IMAGE_HEIGHT*2);
         
-     // the transforms
-//      g2Line.rotate(Math.PI/4.0, IMAGE_WIDTH, IMAGE_HEIGHT);     
+
+        applyapplyWindowToViewportTransformation(g2Line, -100, 100, -100, 100, IMAGE_WIDTH*2, IMAGE_HEIGHT*2,true);
+        animate(g2Line);   
         
         
-     // render first image into second image
-        g2Line.drawImage(imageOfLines, IMAGE_WIDTH/2, IMAGE_HEIGHT/2, null);
+        // render first image into second image
+        g2Line.drawImage(imageOfLines, -IMAGE_WIDTH/2, -IMAGE_HEIGHT/2, null);
         
         // render transformed image onto screen
         g2.drawImage( lineTransformer, 510, 100, null );
@@ -170,9 +168,8 @@ public class GraphicsStarter extends JPanel {
   
     private void applyapplyWindowToViewportTransformation(Graphics2D g2,
             double left, double right, double bottom, double top, 
+            int width, int height, 
             boolean preserveAspect) {
-        int width = getWidth();   // The width of this drawing area, in pixels.
-        int height = getHeight(); // The height of this drawing area, in pixels.
         if (preserveAspect) {
             // Adjust the limits to match the aspect ratio of the drawing area.
             double displayAspect = Math.abs((double)height / width);
@@ -195,6 +192,30 @@ public class GraphicsStarter extends JPanel {
         double pixelWidth = Math.abs(( right - left ) / width);
         double pixelHeight = Math.abs(( bottom - top ) / height);
         pixelSize = (float)Math.max(pixelWidth,pixelHeight);
+    }
+    
+    private void animate(Graphics2D graphic) {
+    	// the transforms
+        switch(keyframe) {
+        	case 1: 
+        		graphic.translate(-5, 7);
+        		break;
+        	case 2:
+        		graphic.translate(-5, 7);
+        		graphic.rotate(-Math.PI/4.0, 0, 0);
+        		break;
+        	case 3:
+        		graphic.translate(-5, 7);
+        		graphic.rotate(-Math.PI/4.0, 0, 0);
+        		graphic.rotate(Math.PI/2.0, 0, 0);
+        		break;
+        	case 4:
+        		graphic.translate(-5, 7);
+        		graphic.rotate(-Math.PI/4.0, 0, 0);
+        		graphic.rotate(Math.PI/2.0, 0, 0);
+        		graphic.scale(2.0, 0.5);
+        		break;
+        }
     }
     
     private Color[][] createImageSquare() {
